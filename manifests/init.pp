@@ -1,38 +1,61 @@
-class redis-multi (
+class redismulti (
   $package         = params_lookup('package'),
   $user            = params_lookup('user'),
   $group           = params_lookup('group'),
   $disable_default = params_lookup('disable_default'),
-) inherits redis-multi::params {
+) inherits redismulti::params {
   
   $bool_disable_default = any2bool($disable_default)
 
   package { $package: }
 
   file { '/etc/init.d/redis-server':
-    content => template('redis-multi/init.sh'),
+    content => template('redismulti/init.sh'),
     mode    => 0551,
     owner   => root,
     group   => root,
   }
   
-  file { '/var/run/redis-server':
+  file { '/var/run/redis':
     ensure => directory,
     owner  => $user,
     group  => $group,
     mode   => 1771,
   }
-
-  group { 'redis-multi':
+    
+  file { '/var/log/redis/redis-server.log':
+    ensure => file,
+    owner  => $user,
+    group  => $group,
+    mode   => 1771,
+  }
+  
+  
+  file { '/usr/share/redis-server/':
+    ensure => directory,
+    owner  => $user,
+    group  => $group,
+    mode   => 1771,
+  }
+  
+  
+  file { '/usr/share/redis-server/scripts/':
+    ensure => directory,
+    owner  => $user,
+    group  => $group,
+    mode   => 1771,
+  }
+  
+  group { 'redis':
     system => true,
   }
 
-  user { 'redis-multi':
+  user { 'redis':
     system  => true,
   }
 
-  file { '/usr/share/redis-server/scripts/start-redis-server':
-    content => template('redis-multi/startscript.sh'),
+  file { '/usr/share/redis-server/scripts/start-redis':
+    content => template('redismulti/startscript.sh'),
     mode    => 755,
   }
   
@@ -40,6 +63,7 @@ class redis-multi (
     file { '/etc/redis/redis.conf': 
       ensure => absent
     }
+    
   }
   
 }

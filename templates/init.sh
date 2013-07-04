@@ -35,7 +35,7 @@
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DAEMON=/usr/bin/redis-server
 DAEMONNAME=redis-server
-DAEMONBOOTSTRAP=/usr/share/redis-server/scripts/start-redis-server
+DAEMONBOOTSTRAP=/usr/share/redis-server/scripts/start-redis
 DESC=redis-server
 
 test -x $DAEMON || exit 0
@@ -46,8 +46,8 @@ set -e
 . /lib/lsb/init-functions
 
 # Edit /etc/default/redis-server to change this.
-ENABLE_REDIS=no
-test -r /etc/default/redis-server && . /etc/default/redis-server
+ENABLE_REDIS=yes
+#test -r /etc/default/redis-server && . /etc/default/redis-server
 
 shopt -s extglob
 if [[ "${0##*/}" =~ "-" ]]; then
@@ -92,16 +92,16 @@ fi;
 CONFIG_NUM=${#CONFIGS[@]}
 for ((i=0; i < $CONFIG_NUM; i++)); do
   NAME=${CONFIGS[${i}]}
-  PIDFILE="/var/run/redis-server/${NAME}.pid"
+  PIDFILE="/var/run/redis/${NAME}.pid"
 
 case "$1" in
   start)
        echo -n "Starting $DESC: "
        if [ $ENABLE_REDIS = yes ]; then
-            echo start-stop-daemon --start --exec "$DAEMONBOOTSTRAP" /etc/${NAME}.conf $PIDFILE
-            start-stop-daemon --start --exec "$DAEMONBOOTSTRAP" /etc/${NAME}.conf $PIDFILE
+            echo start-stop-daemon --start --exec "$DAEMONBOOTSTRAP" /etc/${NAME}.conf $PIDFILE /etc/redis/${NAME}.user.conf
+            start-stop-daemon --start --exec "$DAEMONBOOTSTRAP" /etc/${NAME}.conf $PIDFILE /etc/redis/${NAME}.user.conf
        else
-            echo "$NAME disabled in /etc/default/memcached."
+            echo "$NAME disabled in /etc/default/redis-server."
        fi
        ;;
   stop)

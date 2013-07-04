@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# start-redis-server
+# start-redis
 # 2003/2004 - Jay Bonci <jaybonci@debian.org>
 # This script handles the parsing of the /etc/redis-server.conf file
 # and was originally created for the Debian distribution.
@@ -12,21 +12,22 @@ use strict;
 
 if($> != 0 and $< != 0)
 {
-    print STDERR "Only root wants to run start-redis-server.\n";
+    print STDERR "Only root wants to run start-redis.\n";
     exit;
 }
 
-my $cmdPrefix; my $params; my $etchandle; my $etcfile = "/etc/redis.conf";
+my $cmdPrefix; my $params; my $etchandle; my $etcfile = "/etc/redis/redis.conf"; my $userfile="";
 
 # This script assumes that redis-server is located at /usr/bin/redis-server, and
-# that the pidfile is writable at /var/run/redis-server.pid
+# that the pidfile is writable at /var/run/redis/redis-server.pid
 
-my $redis-server = "/usr/bin/redis-server";
-my $pidfile = "/var/run/redis-server.pid";
+my $redisserver = "/usr/bin/redis-server";
+my $pidfile = "/var/run/redis/redis-server.pid";
 
-if (scalar(@ARGV) == 2) {
+if (scalar(@ARGV) == 3) {
     $etcfile = shift(@ARGV);
     $pidfile = shift(@ARGV);
+    $userfile = shift(@ARGV);
 }
 
 # If we don't get a valid logfile parameter in the /etc/redis-server.conf file,
@@ -57,38 +58,11 @@ my $conf_directives = {
     "logfile" => \&handle_logfile,
 };
 
-if(open $etchandle, $etcfile)
-{
-    foreach my $line (<$etchandle>)
-    {
-        $line ||= "";
-        $line =~ s/\#.*//g;
-        $line =~ s/\s+$//g;
-        $line =~ s/^\s+//g;
-        next unless $line;
-        next if $line =~ /^\-[dh]/;
+open USERHANDLE, "$userfile";
+$cmdPrefix = <USERHANDLE>;
+close USERHANDLE;
 
-        if($line =~ /^[^\-]/)
-        {
-            my ($directive, $arg) = $line =~ /^(.*?)\s+(.*)/;
-            $conf_directives->{$directive}->($arg);
-            next;
-        }
-
-        push @$params, $line;
-    }
-
-}else{
-    $params = [];
-}
-
-
-($cmdPrefix)  = "";
-if (grep "-u", @$params && grep(/^-u/, @$params) ne "-u root")
-{
-    ($cmdPrefix) = grep(/^-u/, @$params);
-     $cmdPrefix = "sudo $cmdPrefix"
-}
+$cmdPrefix = "sudo -u $cmdPrefix";
 
 push @$params, "-u root" unless(grep "-u", @$params);
 $params = join " ", @$params;
@@ -130,7 +104,7 @@ if($pid == 0)
       }
       exit(0);
     }
-    exec "$cmdPrefix $redis-server $params";
+    exec "$cmdPrefix $redisserver $etcfile";
     exit(0);
 
 }

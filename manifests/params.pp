@@ -1,12 +1,12 @@
-class redis-multi::params {
+class redismulti::params {
   
   $package = 'redis-server'
   
-  $conf_prefix     = '/etc/redis'
+  $conf_prefix     = '/etc/redis-server-'
   $init_script     = '/etc/init.d/redis-server'
   
-  $group           = 'redis-multi'
-  $user            = 'redis-multi'
+  $group           = 'redis'
+  $user            = 'redis'
   
   $disable_default = false
 
